@@ -12,6 +12,7 @@
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/usart.h>
+#include <libopencm3/cm3/nvic.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -19,8 +20,7 @@ int _write(int fd, char *ptr, int len);
 
 static void clock_setup(void)
 {
-    /*rcc_clock_setup_in_hse_8mhz_out_24mhz();*/
-	/* Enable GPIOG clock for LED & USARTs. */
+	/* Enable GPIOB clock for LED & USARTs. */
 	rcc_periph_clock_enable(RCC_GPIOB);
 	rcc_periph_clock_enable(RCC_GPIOA);
 
@@ -30,13 +30,27 @@ static void clock_setup(void)
 
 static void usart_setup(void)
 {
+    // enable the USART1 interrupt
+    nvic_enable_irq(NVIC_USART1_IRQ);
+
+    // Setup GPIO pins for USART1 transmit. PA9
+	gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_50_MHZ, 
+            GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, GPIO_USART1_TX);
+
+
+    // Setup GPIO pins for USART1 transmit.  PA10
+    gpio_set_mode(GPIOA, GPIO_MODE_INPUT,
+            GPIO_CNF_INPUT_FLOAT, GPIO_USART1_RX);
+
 	/* Setup USART1 parameters. */
 	usart_set_baudrate(USART1, 115200);
 	usart_set_databits(USART1, 8);
 	usart_set_stopbits(USART1, USART_STOPBITS_1);
-	usart_set_mode(USART1, USART_MODE_TX);
+	usart_set_mode(USART1, USART_MODE_TX_RX);
 	usart_set_parity(USART1, USART_PARITY_NONE);
 	usart_set_flow_control(USART1, USART_FLOWCONTROL_NONE);
+
+    usart_enable_rx_interrupt(USART1);
 
 	/* Finally enable the USART. */
 	usart_enable(USART1);
@@ -44,15 +58,8 @@ static void usart_setup(void)
 
 static void gpio_setup(void)
 {
-	/* Setup GPIO pin GPIO13 on GPIO port G for LED. */ 
+	/* Setup GPIO pin GPIO13 on GPIO port B for LED. */ 
     gpio_set_mode(GPIOB, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO14);
-	/* Setup GPIO pins for USART1 transmit. */
-    /*gpio_set_mode(GPIOB, GPIO_MODE_OUTPUT_2_MHZ, GPIO_CNF_OUTPUT_PUSHPULL, GPIO14);*/
-	gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_50_MHZ, 
-            GPIO_CNF_OUTPUT_ALTFN_PUSHPULL, GPIO_USART1_TX);
-
-	/* Setup USART1  pin as alternate function. */
-	/*gpio_set_af(GPIOA, GPIO_AF7, GPIO9);*/
 }
 
 int main(void)
@@ -68,7 +75,7 @@ int main(void)
 	while (1)
 	{
 
-		gpio_toggle(GPIOB, GPIO14);         	/* LED on/off */
+		/*gpio_toggle(GPIOB, GPIO14);         	[> LED on/off <]*/
 		c = (c == 9) ? 0 : c + 1;	            /* Increment c. */
 
 		/* Method one */
@@ -90,6 +97,28 @@ int main(void)
 	}
 
 	return 0;
+}
+
+
+void usart1_isr(void)
+{
+	static uint8_t data = 'A';
+
+	/* Check if we were called because of RXNE. */
+	if (((USART_CR1(USART1) & USART_CR1_RXNEIE) != 0) &&
+	    ((USART_SR(USART1) & USART_SR_RXNE) != 0)) {
+
+		/* Indicate that we got data. */
+		gpio_toggle(GPIOG, GPIO14);
+
+		/* Retrieve the data from the peripheral. */
+		data = usart_recv(USART1);
+        printf(data);
+	} else {
+        printf('    ____    \n')
+    }
+
+
 }
 
 int _write(int fd, char *ptr, int len)
