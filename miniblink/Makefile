@@ -18,6 +18,7 @@
 ##
 
 BINARY = miniblink
+OBJS += delay.o
 
 include ../Makefile.include
 

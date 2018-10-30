@@ -19,6 +19,7 @@
 
 #include <libopencm3/stm32/rcc.h>
 #include <libopencm3/stm32/gpio.h>
+#include "delay.h"
 
 static void gpio_setup(void)
 {
@@ -34,15 +35,13 @@ static void gpio_setup(void)
 	// GPIOC_CRH |= (GPIO_MODE_OUTPUT_2_MHZ << ((8 - 8) * 4));
 	/* Using API functions: */
 	gpio_set_mode(GPIOB, GPIO_MODE_OUTPUT_2_MHZ,
-		      GPIO_CNF_OUTPUT_PUSHPULL, GPIO8);
+		      GPIO_CNF_OUTPUT_PUSHPULL, GPIO14);
 }
 
 int main(void)
 {
-	int i;
-
+    int i;
 	gpio_setup();
-
 	/* Blink the LED (PC8) on the board. */
 	while (1) {
 		/* Manually: */
@@ -62,10 +61,11 @@ int main(void)
 		// 	__asm__("nop");
 
 		/* Using API function gpio_toggle(): */
-		gpio_toggle(GPIOB, GPIO8);	/* LED on/off */
-		for (i = 0; i < 8000000; i++)	/* Wait a bit. */
-			__asm__("nop");
-	}
+		gpio_toggle(GPIOB, GPIO14);	/* LED on/off */
+        /*delay_ms(1000);*/
+        for (i = 0; i < 8000000; i++)	// [> Wait a bit. <]
+            __asm__("nop");
+    }
 
 	return 0;
 }
