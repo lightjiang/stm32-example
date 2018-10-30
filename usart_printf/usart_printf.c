@@ -25,7 +25,7 @@ static void clock_setup(void)
 	rcc_periph_clock_enable(RCC_GPIOA);
 
 	/* Enable clocks for USART1. */
-	rcc_periph_clock_enable(RCC_USART1);
+	rcc_periph_clock_enable(RCduC_USART1);
 }
 
 static void usart_setup(void)

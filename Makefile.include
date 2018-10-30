@@ -20,7 +20,7 @@
 
 ## 被子目录makefile引用时..为根目录
 
-TOPDIR := .. 
+TOPDIR  := ..
 
 LDSCRIPT = $(TOPDIR)/buildtool/stm32vl-discovery.ld 
 
@@ -39,7 +39,7 @@ ARCH_FLAGS	= -mthumb -mcpu=cortex-m3 $(FP_FLAGS) -mfix-cortex-m3-ldrd
 
 OOCD		:= openocd
 OOCD_INTERFACE	:= /usr/share/openocd/scripts/interface/stlink-v2.cfg
-OOCD_TARGET	:= /usr/share/openocd/scripts/target/stm32f1x_stlink.cfg
+OOCD_TARGET	:= /usr/share/openocd/scripts/target/stm32f1x.cfg
 
 
 OPENCM3_DIR := $(TOPDIR)/libopencm3
