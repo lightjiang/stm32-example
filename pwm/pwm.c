@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static c1count = 0, c2count = 0;
 
 int _write(int fd, char *ptr, int len);
 
@@ -23,6 +24,7 @@ static void clock_setup(void)
 	rcc_periph_clock_enable(RCC_USART1);
 
     rcc_periph_clock_enable(RCC_TIM3);
+    rcc_periph_clock_enable(RCC_TIM4);
 }
 
 
@@ -67,7 +69,14 @@ static void tim_setup(void){
 
 	/* Counter enable */
 	TIM3_CR1 |= TIM_CR1_CEN;
-    
+
+
+    // PB6,7,8,9
+    gpio_set_mode(GPIOB, GPIO_MODE_INPUT, 
+            GPIO_CNF_INPUT_FLOAT, GPIO_TIM4_CH1);
+    timer_disable_counter(TIM4);
+    rcc_periph_reset_pulse(RST_TIM4);
+    nvic_set_prioity(NVIC_DMA1_CHANNEL3_IR);
 }
 
 static void usart_setup(void)
